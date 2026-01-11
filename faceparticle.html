@@ -16,11 +16,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
 
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             background-color: #0a1015;
@@ -33,20 +29,15 @@
 
         #canvas-container {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
             z-index: 1;
         }
 
-        /* Camera Preview */
         #camera-container {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 200px;
-            height: 150px;
+            top: 20px; right: 20px;
+            width: 200px; height: 150px;
             border: 2px solid rgba(0, 255, 255, 0.5);
             border-radius: 8px;
             overflow: hidden;
@@ -55,27 +46,21 @@
             box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
         }
 
-        #camera-container.hidden {
-            display: none;
-        }
+        #camera-container.hidden { display: none; }
 
         #input-video {
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             object-fit: cover;
             transform: scaleX(-1);
         }
 
         #overlay-canvas {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             transform: scaleX(-1);
         }
 
-        /* HUD Elements */
         .hud {
             position: fixed;
             color: #00FFFF;
@@ -87,26 +72,10 @@
             pointer-events: none;
         }
 
-        .hud-tl {
-            top: 20px;
-            left: 20px;
-            border-top: 2px solid #00FFFF;
-            border-left: 2px solid #00FFFF;
-        }
-
         .hud-bl {
-            bottom: 20px;
-            left: 20px;
+            bottom: 20px; left: 20px;
             border-bottom: 2px solid #00FFFF;
             border-left: 2px solid #00FFFF;
-        }
-
-        .hud-br {
-            bottom: 20px;
-            right: 20px;
-            text-align: right;
-            border-bottom: 2px solid #00FFFF;
-            border-right: 2px solid #00FFFF;
         }
 
         .data-label {
@@ -116,20 +85,12 @@
             margin-bottom: 2px;
         }
 
-        .data-val {
-            font-weight: 700;
-            font-size: 14px;
-        }
+        .data-val { font-weight: 700; font-size: 14px; }
+        .data-row { margin-bottom: 10px; }
 
-        .data-row {
-            margin-bottom: 10px;
-        }
-
-        /* Control Buttons */
         .controls {
             position: fixed;
-            top: 20px;
-            left: 20px;
+            top: 20px; left: 20px;
             z-index: 10;
             display: flex;
             flex-direction: column;
@@ -154,16 +115,11 @@
             box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
         }
 
-        .btn.active {
-            background: #00FFFF;
-            color: #000;
-        }
+        .btn.active { background: #00FFFF; color: #000; }
 
-        /* Status Indicator */
         .status-indicator {
             position: fixed;
-            top: 20px;
-            right: 240px;
+            top: 20px; right: 240px;
             z-index: 10;
             display: flex;
             align-items: center;
@@ -174,8 +130,7 @@
         }
 
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 8px; height: 8px;
             border-radius: 50%;
             background: #00FF88;
             animation: pulse 1.5s infinite;
@@ -186,11 +141,9 @@
             50% { opacity: 0.4; }
         }
 
-        /* Theme Indicator */
         .theme-indicator {
             position: fixed;
-            bottom: 20px;
-            left: 50%;
+            bottom: 20px; left: 50%;
             transform: translateX(-50%);
             z-index: 10;
             font-family: 'Orbitron', sans-serif;
@@ -201,11 +154,9 @@
             letter-spacing: 3px;
         }
 
-        /* Keyboard Shortcuts */
         .shortcuts {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            bottom: 20px; right: 20px;
             z-index: 10;
             font-family: 'Share Tech Mono', monospace;
             font-size: 10px;
@@ -213,21 +164,13 @@
             text-align: right;
         }
 
-        .shortcuts div {
-            margin-bottom: 3px;
-        }
+        .shortcuts div { margin-bottom: 3px; }
+        .shortcuts span { color: #00FFFF; }
 
-        .shortcuts span {
-            color: #00FFFF;
-        }
-
-        /* Loading Screen */
         #loading {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background: #0a1015;
             display: flex;
             flex-direction: column;
@@ -240,8 +183,7 @@
         }
 
         #loading .spinner {
-            width: 50px;
-            height: 50px;
+            width: 50px; height: 50px;
             border: 3px solid rgba(0, 255, 255, 0.2);
             border-top-color: #00FFFF;
             border-radius: 50%;
@@ -249,17 +191,12 @@
             margin-bottom: 20px;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Vignette */
         .vignette {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             pointer-events: none;
             background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
             z-index: 2;
@@ -276,32 +213,27 @@
     <div id="canvas-container"></div>
     <div class="vignette"></div>
 
-    <!-- Camera Preview -->
     <div id="camera-container">
         <video id="input-video" playsinline></video>
         <canvas id="overlay-canvas"></canvas>
     </div>
 
-    <!-- Controls -->
     <div class="controls">
         <button class="btn active" id="btn-attract">Attract Mode</button>
         <button class="btn" id="btn-camera">Hide Camera</button>
     </div>
 
-    <!-- Status -->
     <div class="status-indicator" id="status">
         <div class="status-dot"></div>
         <span id="detection-status">Initializing...</span>
     </div>
 
-    <!-- Theme Indicator -->
     <div class="theme-indicator" id="theme-name">RAINBOW</div>
 
-    <!-- HUD Bottom Left -->
     <div class="hud hud-bl">
         <div class="data-row">
             <div class="data-label">PARTICLES</div>
-            <div class="data-val" id="particle-count">12,000</div>
+            <div class="data-val">12,000</div>
         </div>
         <div class="data-row">
             <div class="data-label">FPS</div>
@@ -309,7 +241,6 @@
         </div>
     </div>
 
-    <!-- Shortcuts -->
     <div class="shortcuts">
         <div><span>SPACE</span> Toggle mode</div>
         <div><span>V</span> Toggle camera</div>
@@ -321,9 +252,9 @@
         // ========================================
         const CONFIG = {
             particleCount: 12000,
-            lerpSpeed: 0.12,
-            attractRadius: 150,
-            repelForce: 80
+            lerpSpeed: 0.08,
+            attractRadius: 200,
+            repelForce: 100
         };
 
         // Color Themes
@@ -337,31 +268,27 @@
             },
             {
                 name: 'FIRE',
-                colors: [[1, 0.27, 0], [1, 0.55, 0], [1, 0.84, 0]],
                 getColor: (i, time) => {
                     const t = (Math.sin(i * 0.01 + time) + 1) / 2;
-                    return lerpColors(THEMES[1].colors, t);
+                    return lerpColors([[1, 0.27, 0], [1, 0.55, 0], [1, 0.84, 0]], t);
                 }
             },
             {
                 name: 'OCEAN',
-                colors: [[0, 0.4, 1], [0, 1, 1], [0, 0.81, 0.82]],
                 getColor: (i, time) => {
                     const t = (Math.sin(i * 0.01 + time) + 1) / 2;
-                    return lerpColors(THEMES[2].colors, t);
+                    return lerpColors([[0, 0.4, 1], [0, 1, 1], [0, 0.81, 0.82]], t);
                 }
             },
             {
                 name: 'GALAXY',
-                colors: [[0.58, 0, 0.83], [1, 0, 1], [0.25, 0.41, 0.88]],
                 getColor: (i, time) => {
                     const t = (Math.sin(i * 0.01 + time * 0.5) + 1) / 2;
-                    return lerpColors(THEMES[3].colors, t);
+                    return lerpColors([[0.58, 0, 0.83], [1, 0, 1], [0.25, 0.41, 0.88]], t);
                 }
             },
             {
                 name: 'MATRIX',
-                colors: [[0, 1, 0], [0, 0.8, 0], [0, 0.6, 0]],
                 getColor: (i, time) => {
                     const brightness = 0.6 + Math.sin(i * 0.02 + time * 2) * 0.4;
                     return [0, brightness, 0];
@@ -369,7 +296,6 @@
             }
         ];
 
-        // Helper functions
         function hsvToRgb(h, s, v) {
             let r, g, b;
             const i = Math.floor(h * 6);
@@ -405,23 +331,15 @@
         // STATE
         // ========================================
         const state = {
-            mode: 'ATTRACT', // ATTRACT, REPEL
+            mode: 'ATTRACT',
             themeIndex: 0,
             themeCooldown: 0,
             time: 0,
-
-            // Tracking
-            hands: [],
-            face: null,
-            handLandmarks: [], // Raw landmarks for particle targeting
-            faceLandmarks: [], // Raw landmarks for particle targeting
-
-            // Detection counts
+            targetPoints: [], // Combined hand + face landmarks
             handsDetected: 0,
             faceDetected: false,
-
-            // UI
-            cameraVisible: true
+            cameraVisible: true,
+            initialized: false
         };
 
         // ========================================
@@ -443,25 +361,15 @@
         // ========================================
         const geometry = new THREE.BufferGeometry();
         const positions = new Float32Array(CONFIG.particleCount * 3);
-        const targetPositions = new Float32Array(CONFIG.particleCount * 3);
-        const velocities = new Float32Array(CONFIG.particleCount * 3);
         const colors = new Float32Array(CONFIG.particleCount * 3);
         const sizes = new Float32Array(CONFIG.particleCount);
 
-        // Initialize particles in random positions
+        // Initialize particles scattered
         for (let i = 0; i < CONFIG.particleCount; i++) {
             const i3 = i * 3;
             positions[i3] = (Math.random() - 0.5) * 600;
             positions[i3 + 1] = (Math.random() - 0.5) * 400;
             positions[i3 + 2] = (Math.random() - 0.5) * 100;
-
-            targetPositions[i3] = positions[i3];
-            targetPositions[i3 + 1] = positions[i3 + 1];
-            targetPositions[i3 + 2] = positions[i3 + 2];
-
-            velocities[i3] = 0;
-            velocities[i3 + 1] = 0;
-            velocities[i3 + 2] = 0;
 
             colors[i3] = 0;
             colors[i3 + 1] = 1;
@@ -474,15 +382,11 @@
         geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
         geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
-        // Shaders
         const vertexShader = `
             attribute float size;
             varying vec3 vColor;
-            varying float vSize;
-
             void main() {
                 vColor = color;
-                vSize = size;
                 vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
                 gl_PointSize = (2.0 + size * 1.5) * (200.0 / -mvPosition.z);
                 gl_PointSize = clamp(gl_PointSize, 1.0, 10.0);
@@ -492,16 +396,12 @@
 
         const fragmentShader = `
             varying vec3 vColor;
-            varying float vSize;
-
             void main() {
                 vec2 cxy = 2.0 * gl_PointCoord - 1.0;
                 float r2 = dot(cxy, cxy);
                 if (r2 > 1.0) discard;
-
                 float brightness = exp(-r2 * 3.0);
                 float core = exp(-r2 * 10.0);
-
                 vec3 finalColor = vColor * brightness + vec3(core * 0.5);
                 gl_FragColor = vec4(finalColor, brightness);
             }
@@ -520,31 +420,22 @@
         scene.add(particles);
 
         // ========================================
-        // HAND LANDMARK CONNECTIONS
+        // HAND CONNECTIONS FOR OVERLAY
         // ========================================
         const HAND_CONNECTIONS = [
-            [0, 1], [1, 2], [2, 3], [3, 4],       // Thumb
-            [0, 5], [5, 6], [6, 7], [7, 8],       // Index
-            [0, 9], [9, 10], [10, 11], [11, 12],  // Middle
-            [0, 13], [13, 14], [14, 15], [15, 16], // Ring
-            [0, 17], [17, 18], [18, 19], [19, 20], // Pinky
-            [5, 9], [9, 13], [13, 17]              // Palm
+            [0, 1], [1, 2], [2, 3], [3, 4],
+            [0, 5], [5, 6], [6, 7], [7, 8],
+            [0, 9], [9, 10], [10, 11], [11, 12],
+            [0, 13], [13, 14], [14, 15], [15, 16],
+            [0, 17], [17, 18], [18, 19], [19, 20],
+            [5, 9], [9, 13], [13, 17]
         ];
 
-        // Key face landmark indices for contour
         const FACE_CONTOUR = [
             10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288,
             397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136,
             172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109
         ];
-
-        // Face features
-        const FACE_FEATURES = {
-            leftEye: [33, 133, 160, 159, 158, 144, 145, 153],
-            rightEye: [362, 263, 387, 386, 385, 373, 374, 380],
-            nose: [1, 2, 98, 327],
-            mouth: [61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291]
-        };
 
         // ========================================
         // MEDIAPIPE SETUP
@@ -553,19 +444,10 @@
         const overlayCanvas = document.getElementById('overlay-canvas');
         const overlayCtx = overlayCanvas.getContext('2d');
 
-        // Face Mesh
-        const faceMesh = new FaceMesh({
-            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
-        });
+        let lastHandResults = null;
+        let lastFaceResults = null;
 
-        faceMesh.setOptions({
-            maxNumFaces: 1,
-            refineLandmarks: true,
-            minDetectionConfidence: 0.5,
-            minTrackingConfidence: 0.5
-        });
-
-        // Hands
+        // HANDS
         const hands = new Hands({
             locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
         });
@@ -577,80 +459,99 @@
             minTrackingConfidence: 0.5
         });
 
-        // Results handlers
-        let faceResults = null;
-        let handResults = null;
+        hands.onResults((results) => {
+            lastHandResults = results;
+            processAllResults();
+        });
+
+        // FACE MESH
+        const faceMesh = new FaceMesh({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+        });
+
+        faceMesh.setOptions({
+            maxNumFaces: 1,
+            refineLandmarks: true,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
 
         faceMesh.onResults((results) => {
-            faceResults = results;
-            processResults();
+            lastFaceResults = results;
+            processAllResults();
         });
 
-        hands.onResults((results) => {
-            handResults = results;
-            processResults();
-        });
-
-        function processResults() {
-            // Reset state
-            state.handLandmarks = [];
-            state.faceLandmarks = [];
+        // ========================================
+        // PROCESS RESULTS
+        // ========================================
+        function processAllResults() {
+            const newTargets = [];
             state.handsDetected = 0;
             state.faceDetected = false;
 
-            // Process hands
-            if (handResults && handResults.multiHandLandmarks) {
-                state.handsDetected = handResults.multiHandLandmarks.length;
+            // Screen dimensions for coordinate mapping
+            const screenW = window.innerWidth;
+            const screenH = window.innerHeight;
+            const scaleX = screenW * 0.8;  // Scale to ~80% of screen width
+            const scaleY = screenH * 0.8;  // Scale to ~80% of screen height
 
-                for (const landmarks of handResults.multiHandLandmarks) {
-                    // Convert all landmarks to screen coordinates
+            // Process hands
+            if (lastHandResults && lastHandResults.multiHandLandmarks) {
+                state.handsDetected = lastHandResults.multiHandLandmarks.length;
+
+                for (const landmarks of lastHandResults.multiHandLandmarks) {
+                    // Add all hand landmarks as target points
                     for (const lm of landmarks) {
-                        state.handLandmarks.push({
-                            x: (0.5 - lm.x) * 600,  // Mirror and scale
-                            y: (0.5 - lm.y) * 400,
+                        newTargets.push({
+                            x: (0.5 - lm.x) * scaleX,  // Mirror and scale
+                            y: (0.5 - lm.y) * scaleY,
                             z: -lm.z * 100
                         });
                     }
 
-                    // Check for fist gesture (theme cycling)
-                    if (detectFist(landmarks)) {
-                        if (state.themeCooldown <= 0) {
-                            cycleTheme();
-                            state.themeCooldown = 60; // 1 second cooldown at 60fps
-                        }
+                    // Check for fist gesture
+                    if (detectFist(landmarks) && state.themeCooldown <= 0) {
+                        cycleTheme();
+                        state.themeCooldown = 60;
                     }
                 }
             }
 
             // Process face
-            if (faceResults && faceResults.multiFaceLandmarks && faceResults.multiFaceLandmarks.length > 0) {
+            if (lastFaceResults && lastFaceResults.multiFaceLandmarks && lastFaceResults.multiFaceLandmarks.length > 0) {
                 state.faceDetected = true;
-                const faceLM = faceResults.multiFaceLandmarks[0];
+                const faceLM = lastFaceResults.multiFaceLandmarks[0];
 
-                // Get contour points
+                // Add face contour points
                 for (const idx of FACE_CONTOUR) {
-                    const lm = faceLM[idx];
-                    state.faceLandmarks.push({
-                        x: (0.5 - lm.x) * 600,
-                        y: (0.5 - lm.y) * 400,
-                        z: -lm.z * 100
-                    });
+                    if (faceLM[idx]) {
+                        const lm = faceLM[idx];
+                        newTargets.push({
+                            x: (0.5 - lm.x) * scaleX,
+                            y: (0.5 - lm.y) * scaleY,
+                            z: -lm.z * 100
+                        });
+                    }
                 }
 
-                // Add feature points
-                for (const feature of Object.values(FACE_FEATURES)) {
-                    for (const idx of feature) {
+                // Add key facial features (eyes, nose, mouth)
+                const keyPoints = [1, 4, 5, 6, 33, 133, 362, 263, 61, 291, 199];
+                for (const idx of keyPoints) {
+                    if (faceLM[idx]) {
                         const lm = faceLM[idx];
-                        state.faceLandmarks.push({
-                            x: (0.5 - lm.x) * 600,
-                            y: (0.5 - lm.y) * 400,
+                        newTargets.push({
+                            x: (0.5 - lm.x) * scaleX,
+                            y: (0.5 - lm.y) * scaleY,
                             z: -lm.z * 100
                         });
                     }
                 }
             }
 
-            // Update status display
+            // Update state
+            state.targetPoints = newTargets;
+
+            // Update status
             updateStatus();
 
             // Draw overlay
@@ -658,49 +559,40 @@
         }
 
         function detectFist(landmarks) {
-            // Check if all fingers are curled (fist)
-            const tips = [8, 12, 16, 20]; // Fingertips
-            const pips = [6, 10, 14, 18]; // Middle joints
-
-            let curledCount = 0;
+            const tips = [8, 12, 16, 20];
+            const pips = [6, 10, 14, 18];
+            let curled = 0;
             for (let i = 0; i < tips.length; i++) {
-                if (landmarks[tips[i]].y > landmarks[pips[i]].y) {
-                    curledCount++;
-                }
+                if (landmarks[tips[i]].y > landmarks[pips[i]].y) curled++;
             }
-
-            return curledCount >= 3;
+            return curled >= 3;
         }
 
         function cycleTheme() {
             state.themeIndex = (state.themeIndex + 1) % THEMES.length;
-            document.getElementById('theme-name').textContent = THEMES[state.themeIndex].name;
-            document.getElementById('theme-name').style.color = getThemeColor();
-        }
+            const themeName = THEMES[state.themeIndex].name;
+            document.getElementById('theme-name').textContent = themeName;
 
-        function getThemeColor() {
-            const colors = {
+            const themeColors = {
                 'RAINBOW': '#FF00FF',
                 'FIRE': '#FF4500',
                 'OCEAN': '#00FFFF',
                 'GALAXY': '#9400D3',
                 'MATRIX': '#00FF00'
             };
-            return colors[THEMES[state.themeIndex].name] || '#00FFFF';
+            document.getElementById('theme-name').style.color = themeColors[themeName];
         }
 
         function updateStatus() {
-            const statusEl = document.getElementById('detection-status');
+            const el = document.getElementById('detection-status');
             const parts = [];
+            if (state.handsDetected > 0) parts.push(`${state.handsDetected} hand${state.handsDetected > 1 ? 's' : ''}`);
+            if (state.faceDetected) parts.push('face detected');
+            el.textContent = parts.length > 0 ? parts.join(' + ') : 'No detection';
 
-            if (state.handsDetected > 0) {
-                parts.push(`${state.handsDetected} hand${state.handsDetected > 1 ? 's' : ''}`);
-            }
-            if (state.faceDetected) {
-                parts.push('face detected');
-            }
-
-            statusEl.textContent = parts.length > 0 ? parts.join(' + ') : 'No detection';
+            // Change dot color based on detection
+            const dot = document.querySelector('.status-dot');
+            dot.style.background = parts.length > 0 ? '#00FF88' : '#FF4444';
         }
 
         function drawOverlay() {
@@ -710,27 +602,31 @@
             overlayCanvas.height = overlayCanvas.clientHeight;
             overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 
-            const themeColor = getThemeColor();
+            const themeColors = {
+                'RAINBOW': '#FF00FF',
+                'FIRE': '#FF4500',
+                'OCEAN': '#00FFFF',
+                'GALAXY': '#9400D3',
+                'MATRIX': '#00FF00'
+            };
+            const color = themeColors[THEMES[state.themeIndex].name];
 
             // Draw hands
-            if (handResults && handResults.multiHandLandmarks) {
-                for (const landmarks of handResults.multiHandLandmarks) {
-                    // Draw connections
-                    overlayCtx.strokeStyle = themeColor;
+            if (lastHandResults && lastHandResults.multiHandLandmarks) {
+                for (const landmarks of lastHandResults.multiHandLandmarks) {
+                    overlayCtx.strokeStyle = color;
                     overlayCtx.lineWidth = 2;
 
                     for (const [start, end] of HAND_CONNECTIONS) {
                         const p1 = landmarks[start];
                         const p2 = landmarks[end];
-
                         overlayCtx.beginPath();
                         overlayCtx.moveTo(p1.x * overlayCanvas.width, p1.y * overlayCanvas.height);
                         overlayCtx.lineTo(p2.x * overlayCanvas.width, p2.y * overlayCanvas.height);
                         overlayCtx.stroke();
                     }
 
-                    // Draw points
-                    overlayCtx.fillStyle = themeColor;
+                    overlayCtx.fillStyle = color;
                     for (const lm of landmarks) {
                         overlayCtx.beginPath();
                         overlayCtx.arc(lm.x * overlayCanvas.width, lm.y * overlayCanvas.height, 3, 0, Math.PI * 2);
@@ -739,30 +635,25 @@
                 }
             }
 
-            // Draw face mesh (simplified contour)
-            if (faceResults && faceResults.multiFaceLandmarks && faceResults.multiFaceLandmarks.length > 0) {
-                const faceLM = faceResults.multiFaceLandmarks[0];
-
-                overlayCtx.strokeStyle = themeColor;
+            // Draw face contour
+            if (lastFaceResults && lastFaceResults.multiFaceLandmarks && lastFaceResults.multiFaceLandmarks.length > 0) {
+                const faceLM = lastFaceResults.multiFaceLandmarks[0];
+                overlayCtx.strokeStyle = color;
                 overlayCtx.lineWidth = 1;
                 overlayCtx.globalAlpha = 0.6;
 
-                // Draw contour
                 overlayCtx.beginPath();
                 for (let i = 0; i < FACE_CONTOUR.length; i++) {
                     const lm = faceLM[FACE_CONTOUR[i]];
-                    const x = lm.x * overlayCanvas.width;
-                    const y = lm.y * overlayCanvas.height;
-
-                    if (i === 0) {
-                        overlayCtx.moveTo(x, y);
-                    } else {
-                        overlayCtx.lineTo(x, y);
+                    if (lm) {
+                        const x = lm.x * overlayCanvas.width;
+                        const y = lm.y * overlayCanvas.height;
+                        if (i === 0) overlayCtx.moveTo(x, y);
+                        else overlayCtx.lineTo(x, y);
                     }
                 }
                 overlayCtx.closePath();
                 overlayCtx.stroke();
-
                 overlayCtx.globalAlpha = 1;
             }
         }
@@ -779,7 +670,7 @@
             state.time += 0.016;
             if (state.themeCooldown > 0) state.themeCooldown--;
 
-            // FPS counter
+            // FPS
             frameCount++;
             const now = performance.now();
             if (now - lastTime >= 1000) {
@@ -788,89 +679,82 @@
                 lastTime = now;
             }
 
-            // Update particles
             updateParticles();
-
-            // Render
             renderer.render(scene, camera);
         }
 
         function updateParticles() {
             const posArr = geometry.attributes.position.array;
             const colArr = geometry.attributes.color.array;
-
-            // Combine all target points
-            const allTargets = [...state.handLandmarks, ...state.faceLandmarks];
-            const hasTargets = allTargets.length > 0;
-
+            const targets = state.targetPoints;
+            const hasTargets = targets.length > 0;
             const theme = THEMES[state.themeIndex];
 
             for (let i = 0; i < CONFIG.particleCount; i++) {
                 const i3 = i * 3;
-
                 let px = posArr[i3];
                 let py = posArr[i3 + 1];
                 let pz = posArr[i3 + 2];
 
-                if (hasTargets && state.mode === 'ATTRACT') {
-                    // Find nearest target point
-                    const targetIdx = i % allTargets.length;
-                    const target = allTargets[targetIdx];
+                if (hasTargets) {
+                    if (state.mode === 'ATTRACT') {
+                        // Assign each particle to a target point
+                        const targetIdx = i % targets.length;
+                        const target = targets[targetIdx];
 
-                    // Add some randomness to spread particles around landmarks
-                    const spread = 15;
-                    const offsetX = (Math.sin(i * 0.1 + state.time * 2) * spread);
-                    const offsetY = (Math.cos(i * 0.13 + state.time * 1.7) * spread);
+                        // Add spread around the landmark
+                        const spread = 20;
+                        const offsetX = Math.sin(i * 0.1 + state.time * 2) * spread;
+                        const offsetY = Math.cos(i * 0.13 + state.time * 1.7) * spread;
+                        const offsetZ = Math.sin(i * 0.05 + state.time) * 30;
 
-                    const tx = target.x + offsetX;
-                    const ty = target.y + offsetY;
-                    const tz = target.z + Math.sin(i * 0.05) * 20;
+                        const tx = target.x + offsetX;
+                        const ty = target.y + offsetY;
+                        const tz = target.z + offsetZ;
 
-                    // Lerp toward target
-                    px += (tx - px) * CONFIG.lerpSpeed;
-                    py += (ty - py) * CONFIG.lerpSpeed;
-                    pz += (tz - pz) * CONFIG.lerpSpeed;
+                        // Lerp toward target
+                        px += (tx - px) * CONFIG.lerpSpeed;
+                        py += (ty - py) * CONFIG.lerpSpeed;
+                        pz += (tz - pz) * CONFIG.lerpSpeed;
 
-                } else if (hasTargets && state.mode === 'REPEL') {
-                    // Repel from all target points
-                    let fx = 0, fy = 0;
-
-                    for (const target of allTargets) {
-                        const dx = px - target.x;
-                        const dy = py - target.y;
-                        const dist = Math.sqrt(dx * dx + dy * dy);
-
-                        if (dist < CONFIG.attractRadius && dist > 1) {
-                            const force = (1 - dist / CONFIG.attractRadius) * CONFIG.repelForce;
-                            fx += (dx / dist) * force;
-                            fy += (dy / dist) * force;
+                    } else { // REPEL
+                        let fx = 0, fy = 0;
+                        for (const target of targets) {
+                            const dx = px - target.x;
+                            const dy = py - target.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            if (dist < CONFIG.attractRadius && dist > 1) {
+                                const force = (1 - dist / CONFIG.attractRadius) * CONFIG.repelForce;
+                                fx += (dx / dist) * force;
+                                fy += (dy / dist) * force;
+                            }
                         }
+                        px += fx * 0.1;
+                        py += fy * 0.1;
+
+                        // Gentle drift
+                        px += Math.sin(state.time + i * 0.01) * 0.5;
+                        py += Math.cos(state.time * 0.8 + i * 0.01) * 0.5;
                     }
-
-                    px += fx * 0.1;
-                    py += fy * 0.1;
-
-                    // Add drift
-                    px += Math.sin(state.time + i * 0.01) * 0.5;
-                    py += Math.cos(state.time * 0.8 + i * 0.01) * 0.5;
-
                 } else {
-                    // Idle drift - particles float gently
+                    // No targets - gentle idle drift
                     px += Math.sin(state.time * 0.5 + i * 0.01) * 0.3;
                     py += Math.cos(state.time * 0.4 + i * 0.013) * 0.3;
                     pz += Math.sin(state.time * 0.3 + i * 0.007) * 0.2;
                 }
 
-                // Keep particles in bounds
-                if (Math.abs(px) > 400) px *= 0.99;
-                if (Math.abs(py) > 300) py *= 0.99;
+                // Bounds
+                const maxX = window.innerWidth * 0.6;
+                const maxY = window.innerHeight * 0.5;
+                if (Math.abs(px) > maxX) px *= 0.98;
+                if (Math.abs(py) > maxY) py *= 0.98;
                 if (Math.abs(pz) > 150) pz *= 0.95;
 
                 posArr[i3] = px;
                 posArr[i3 + 1] = py;
                 posArr[i3 + 2] = pz;
 
-                // Update colors
+                // Colors
                 const [r, g, b] = theme.getColor(i, state.time);
                 colArr[i3] += (r - colArr[i3]) * 0.05;
                 colArr[i3 + 1] += (g - colArr[i3 + 1]) * 0.05;
@@ -896,7 +780,6 @@
             this.textContent = state.cameraVisible ? 'Hide Camera' : 'Show Camera';
         });
 
-        // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space') {
                 e.preventDefault();
@@ -906,7 +789,6 @@
             }
         });
 
-        // Resize handler
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
@@ -917,32 +799,34 @@
         // INITIALIZATION
         // ========================================
         async function init() {
+            console.log('Starting initialization...');
+
             try {
-                // Start camera
                 const cameraUtils = new Camera(videoElement, {
                     onFrame: async () => {
-                        await Promise.all([
-                            faceMesh.send({ image: videoElement }),
-                            hands.send({ image: videoElement })
-                        ]);
+                        // Send to both models
+                        await hands.send({ image: videoElement });
+                        await faceMesh.send({ image: videoElement });
                     },
                     width: 640,
                     height: 480
                 });
 
+                console.log('Starting camera...');
                 await cameraUtils.start();
+                console.log('Camera started');
 
-                // Hide loading
+                state.initialized = true;
                 document.getElementById('loading').style.display = 'none';
 
                 // Start animation
                 animate();
 
             } catch (err) {
-                console.error('Initialization error:', err);
+                console.error('Init error:', err);
                 document.getElementById('loading').innerHTML = `
                     <div style="color: #FF4444;">ERROR: ${err.message}</div>
-                    <div style="margin-top: 10px; font-size: 12px;">Please allow camera access</div>
+                    <div style="margin-top: 10px; font-size: 12px;">Please allow camera access and refresh</div>
                 `;
             }
         }
