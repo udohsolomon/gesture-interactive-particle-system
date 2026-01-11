@@ -292,9 +292,9 @@
                 pink: new THREE.Color(0xFF00FF),
                 green: new THREE.Color(0x00FF88),
                 orange: new THREE.Color(0xFF8800),
-                purple: new THREE.Color(0xAA00FF),  // For Diza
-                coral: new THREE.Color(0xFF6B6B),   // For Gaby
-                gold: new THREE.Color(0xFFD700)     // For Solomon
+                purple: new THREE.Color(0xAA00FF),  // For User 1
+                coral: new THREE.Color(0xFF6B6B),   // For User 2
+                gold: new THREE.Color(0xFFD700)     // For User 3
             },
             canvasFont: '900 100px "Orbitron", sans-serif'
         };
@@ -622,9 +622,9 @@
             let newText = "";
             let newColor = null;
 
-            if (fingers === 1) { newText = "Diza"; newColor = CONF.colors.purple; }
-            else if (fingers === 2) { newText = "Gaby"; newColor = CONF.colors.coral; }
-            else if (fingers === 3) { newText = "Solomon"; newColor = CONF.colors.gold; }
+            if (fingers === 1) { newText = "User 1"; newColor = CONF.colors.purple; }
+            else if (fingers === 2) { newText = "User 2"; newColor = CONF.colors.coral; }
+            else if (fingers === 3) { newText = "User 3"; newColor = CONF.colors.gold; }
 
             if (newText !== "" && state.targetShape !== newText) {
                 state.targetShape = newText;

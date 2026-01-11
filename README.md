@@ -44,9 +44,9 @@ Controls the **Physics Forces** applied to the particles.
 | :--- | :--- |
 | **Fist (0 Fingers)** | **Repulsion Field**: Pushes particles away from your hand. |
 | **Open Hand (5 Fingers)** | **Nebula Mode**: Creates a water-ripple effect and spreads particles. |
-| **1 Finger** | Text: "Diza" (Neon Purple) |
-| **2 Fingers** | Text: "Gaby" (Coral) |
-| **3 Fingers** | Text: "Solomon" (Gold) |
+| **1 Finger** | Text: "User 1" (Neon Purple) |
+| **2 Fingers** | Text: "User 2" (Coral) |
+| **3 Fingers** | Text: "User 3" (Gold) |
 
 ### 💥 Combo Moves
 *   **The Drop**: Open your **Left Hand** (Attract) to gather particles, then quickly **Close** both hands to trigger a physics explosion.
@@ -82,4 +82,4 @@ Controls the **Physics Forces** applied to the particles.
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
-*Concept & Implementation by Solomon Udoh*
+*Concept & Implementation by [Your Name]*
