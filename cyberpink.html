@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYBERPUNK // PARTICLE INTERFACE</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+    <style>
+        /* --- CYBERPUNK STYLING --- */
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Orbitron', sans-serif;
+            user-select: none;
+            cursor: crosshair;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        #input-video {
+            display: block;
+            position: absolute;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            object-fit: cover;
+            opacity: 0.6;
+            filter: grayscale(30%) contrast(1.05);
+            z-index: 0;
+            transform: scaleX(-1); /* Mirror to match particles */
+        }
+
+        .grid-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image:
+                linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 0;
+            pointer-events: none;
+            animation: gridMove 30s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 50px 50px; }
+        }
+
+        /* Screen Overlays */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .scanlines {
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            opacity: 0.6;
+            animation: scanScroll 10s linear infinite;
+        }
+
+        @keyframes scanScroll {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 100%; }
+        }
+
+        .vignette {
+            background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.9) 100%);
+        }
+
+        /* HUD Interface */
+        .hud {
+            position: absolute;
+            color: #00FFFF;
+            text-shadow: 0 0 10px #00FFFF, 0 0 20px #00FFFF;
+            z-index: 3;
+            padding: 20px;
+            font-size: 14px;
+            letter-spacing: 2px;
+            pointer-events: none;
+            transition: transform 0.1s;
+        }
+
+        .hud-tl { top: 0; left: 0; border-top: 2px solid #00FFFF; border-left: 2px solid #00FFFF; margin: 20px; }
+        .hud-tr { top: 0; right: 0; text-align: right; border-top: 2px solid #00FFFF; border-right: 2px solid #00FFFF; margin: 20px; }
+        .hud-bl { bottom: 0; left: 0; border-bottom: 2px solid #00FFFF; border-left: 2px solid #00FFFF; margin: 20px; }
+        .hud-br { bottom: 0; right: 0; text-align: right; border-bottom: 2px solid #00FFFF; border-right: 2px solid #00FFFF; margin: 20px; }
+        
+        /* Log Console */
+        .hud-log {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(0, 255, 255, 0.6);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            z-index: 4;
+            text-align: center;
+            pointer-events: none;
+            max-height: 100px;
+            overflow: hidden;
+            width: 80%;
+        }
+
+        .data-label { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: rgba(255,255,255,0.7); }
+        .data-val { font-weight: 900; }
+        
+        #loading {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            color: #00FFFF;
+            font-size: 24px;
+            z-index: 10;
+            animation: blink 1s infinite;
+            text-shadow: 0 0 10px #00FFFF;
+            pointer-events: none;
+        }
+
+        #start-prompt {
+            position: absolute;
+            bottom: 20%; left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            z-index: 20;
+            font-family: 'Share Tech Mono', monospace;
+            opacity: 0.7;
+            animation: blink 2s infinite;
+            cursor: pointer;
+            background: rgba(0,0,0,0.8);
+            padding: 10px 20px;
+            border: 1px solid #00FFFF;
+        }
+
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div id="loading">INITIALIZING NEURAL LINK...</div>
+    <div id="start-prompt">[ CLICK TO INITIALIZE SYSTEM ]</div>
+    
+    <div class="grid-overlay"></div>
+    <video id="input-video" playsinline></video>
+    <div id="canvas-container"></div>
+
+    <div class="overlay scanlines"></div>
+    <div class="overlay vignette"></div>
+
+    <div class="hud hud-tl">
+        <div class="data-label">SYSTEM</div>
+        <div class="data-val">ONLINE</div>
+        <div class="data-label" style="margin-top:10px;">FPS</div>
+        <div class="data-val" id="fps-counter">0</div>
+        <div class="data-label" style="margin-top:10px;">SECTOR</div>
+        <div class="data-val">7</div>
+    </div>
+    
+    <div class="hud hud-tr">
+        <div class="data-label">PARTICLES</div>
+        <div class="data-val">12,000</div>
+        <div class="data-label" style="margin-top:10px;">RENDERER</div>
+        <div class="data-val">WEBGL2</div>
+    </div>
+
+    <div class="hud hud-bl">
+        <div class="data-label">L.HAND (CMD)</div>
+        <div class="data-val" id="l-hand-status">NO SIGNAL</div>
+        <div class="data-label" style="margin-top:10px;">FINGERS</div>
+        <div class="data-val" id="l-fingers">0</div>
+        <div class="data-label" style="margin-top:10px;">CMD</div>
+        <div class="data-val" id="current-cmd">WAITING</div>
+    </div>
+
+    <div class="hud hud-br">
+        <div class="data-label">R.HAND (PHYSICS)</div>
+        <div class="data-val" id="r-hand-status">NO SIGNAL</div>
+        <div class="data-label" style="margin-top:10px;">MODE</div>
+        <div class="data-val" id="sys-mode">IDLE</div>
+    </div>
+    
+    <div class="hud-log" id="sys-log"></div>
+
+    <script>
+        // LOGGING UTILITY
+        const sysLog = document.getElementById('sys-log');
+        function log(msg) {
+            console.log(msg);
+            const line = document.createElement('div');
+            line.innerText = `> ${msg}`;
+            sysLog.prepend(line);
+            if (sysLog.children.length > 5) sysLog.removeChild(sysLog.lastChild);
+        }
+        window.onerror = function(msg, url, line) {
+            log(`ERROR: ${msg} @ line ${line}`);
+            return false;
+        };
+
+        log("SYSTEM BOOT SEQUENCE INITIATED...");
+
+        /** 
+         * AUDIO SYSTEM
+         */
+        const AudioSys = {
+            ctx: null,
+            enabled: false,
+            init: function() {
+                try {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    this.enabled = true;
+                    document.getElementById('start-prompt').style.display = 'none';
+                    this.playStartup();
+                    log("AUDIO SYSTEM: ONLINE");
+                } catch(e) {
+                    log("AUDIO SYSTEM: FAILED " + e.message);
+                }
+            },
+            playStartup: function() {
+                this.playTone(440, 0.5);
+                setTimeout(() => this.playTone(880, 0.5), 200);
+            },
+            playTone: function(freq, dur) {
+                if (!this.enabled || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + dur);
+            },
+            playGlass: function(pitchMod = 1.0) {
+                if (!this.enabled || !this.ctx) return;
+                const t = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime((2000 + Math.random() * 2000) * pitchMod, t);
+                osc.frequency.exponentialRampToValueAtTime(100, t + 0.5);
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(0.15, t + 0.01); 
+                gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(t);
+                osc.stop(t + 0.3);
+            }
+        };
+
+        document.getElementById('start-prompt').addEventListener('click', () => {
+            if (!AudioSys.enabled) AudioSys.init();
+        });
+
+        /** 
+         * CONFIGURATION & CONSTANTS
+         */
+        const CONF = {
+            particleCount: 12000,
+            particleSize: 2.4, // As per spec
+            lerpSpeed: 0.16, // Fast return speed per spec
+            colors: {
+                blue: new THREE.Color(0x00FFFF),
+                yellow: new THREE.Color(0xFFFF00),
+                pink: new THREE.Color(0xFF00FF),
+                green: new THREE.Color(0x00FF88),
+                orange: new THREE.Color(0xFF8800),
+                purple: new THREE.Color(0xAA00FF),  // For Diza
+                coral: new THREE.Color(0xFF6B6B),   // For Gaby
+                gold: new THREE.Color(0xFFD700)     // For Solomon
+            },
+            canvasFont: '900 100px "Orbitron", sans-serif'
+        };
+
+        const state = {
+            lHand: { active: false, fingers: 0, pos: new THREE.Vector3() },
+            rHand: { active: false, fingers: 0, pos: new THREE.Vector3(), isOpen: false },
+            mode: 'NEBULA', // START IN NEBULA
+            prevMode: 'NEBULA',
+            targetShape: 'Hello',
+            currentColor: CONF.colors.blue,
+            time: 0,
+            explosionCenter: new THREE.Vector3(),
+            explosionTime: 0
+        };
+
+        /** 
+         * THREE.JS SETUP 
+         */
+        log("INIT GRAPHICS SUBSYSTEM...");
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 3000);
+        camera.position.z = 140; // Adjusted for optimal text framing
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        // Force Clear Color to transparent
+        renderer.setClearColor(0x000000, 0); 
+        container.appendChild(renderer.domElement);
+
+        /**
+         * PARTICLE SYSTEM
+         */
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(CONF.particleCount * 3);
+        const targetPositions = new Float32Array(CONF.particleCount * 3);
+        const colors = new Float32Array(CONF.particleCount * 3);
+        const sizes = new Float32Array(CONF.particleCount);
+
+        // Pre-calculate Sphere (Default State)
+        const sphereCoords = [];
+        {
+            const count = CONF.particleCount;
+            const goldenRatio = (1 + Math.sqrt(5)) / 2;
+            const radius = 60; 
+            for(let i=0; i<count; i++) {
+                const theta = 2 * Math.PI * i / goldenRatio;
+                const phi = Math.acos(1 - 2 * (i + 0.5) / count);
+                const x = radius * Math.sin(phi) * Math.cos(theta);
+                const y = radius * Math.sin(phi) * Math.sin(theta);
+                const z = radius * Math.cos(phi);
+                
+                sphereCoords.push({x, y, z});
+
+                // Init positions SCATTERED for Nebula start
+                positions[i*3] = (Math.random()-0.5) * 500;
+                positions[i*3+1] = (Math.random()-0.5) * 500;
+                positions[i*3+2] = (Math.random()-0.5) * 500;
+
+                // Init Targets to sphere
+                targetPositions[i*3] = x;
+                targetPositions[i*3+1] = y;
+                targetPositions[i*3+2] = z;
+                
+                colors[i * 3] = CONF.colors.blue.r;
+                colors[i * 3 + 1] = CONF.colors.blue.g;
+                colors[i * 3 + 2] = CONF.colors.blue.b;
+
+                sizes[i] = Math.random();
+            }
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+        // PINPOINT PARTICLE SHADER (exact video match)
+        const vertexShader = `
+            attribute float size;
+            varying vec3 vColor;
+            void main() {
+                vColor = color;
+                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                // Very small uniform particles - pinpoint dots
+                gl_PointSize = (1.8 + size * 0.8) * (200.0 / -mvPosition.z);
+                gl_PointSize = clamp(gl_PointSize, 1.0, 8.0);
+                gl_Position = projectionMatrix * mvPosition;
+            }
+        `;
+
+        const fragmentShader = `
+            varying vec3 vColor;
+            void main() {
+                // Distance from center (squared)
+                vec2 cxy = 2.0 * gl_PointCoord - 1.0;
+                float r2 = dot(cxy, cxy);
+
+                // Hard circular cutoff
+                if (r2 > 1.0) discard;
+
+                // Sharp bright dot with tight glow
+                float brightness = exp(-r2 * 4.0);
+
+                // Hot white center
+                float hotCore = exp(-r2 * 12.0);
+
+                // Color with white-hot core
+                vec3 finalColor = vColor * brightness + vec3(hotCore * 0.6);
+
+                gl_FragColor = vec4(finalColor, brightness);
+            }
+        `;
+
+        const material = new THREE.ShaderMaterial({
+            uniforms: {},
+            vertexShader: vertexShader,
+            fragmentShader: fragmentShader,
+            blending: THREE.AdditiveBlending,
+            depthTest: false, // Important for glow overlap
+            transparent: true,
+            vertexColors: true // Required to access color attribute in shader
+        });
+
+        const particleSystem = new THREE.Points(geometry, material);
+        scene.add(particleSystem);
+        log("PARTICLE SYSTEM: READY");
+
+        /**
+         * TEXT GENERATION
+         */
+        const textCanvas = document.createElement('canvas');
+        const tCtx = textCanvas.getContext('2d');
+        textCanvas.width = 1000;
+        textCanvas.height = 350;
+
+        function generateTextCoords(text) {
+            log(`GENERATING TEXT: ${text}`);
+            tCtx.clearRect(0, 0, textCanvas.width, textCanvas.height);
+            tCtx.fillStyle = '#FFFFFF';
+            tCtx.font = CONF.canvasFont;
+            tCtx.textAlign = 'center';
+            tCtx.textBaseline = 'middle';
+            tCtx.fillText(text, textCanvas.width / 2, textCanvas.height / 2);
+
+            const imageData = tCtx.getImageData(0, 0, textCanvas.width, textCanvas.height).data;
+            const coords = [];
+            // Dense sampling for crisp text
+            const gap = 2;
+            const scale = 0.30; // Scale factor for text size in scene
+            for (let y = 0; y < textCanvas.height; y += gap) {
+                for (let x = 0; x < textCanvas.width; x += gap) {
+                    if (imageData[(y * textCanvas.width + x) * 4 + 3] > 128) {
+                        coords.push({
+                            x: (x - textCanvas.width / 2) * scale,
+                            y: -(y - textCanvas.height / 2) * scale,
+                            z: 0
+                        });
+                    }
+                }
+            }
+
+            // Shuffle coords so particles distribute evenly across entire text
+            for (let i = coords.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [coords[i], coords[j]] = [coords[j], coords[i]];
+            }
+
+            log(`TEXT NODES FOUND: ${coords.length}`);
+            return coords;
+        }
+
+        function updateTargetPositions(type) {
+            if (type === 'TEXT') {
+                let coords = generateTextCoords(state.targetShape);
+                if (coords.length === 0) {
+                    log("WARN: Orbitron missing? Trying fallback font.");
+                    tCtx.font = '900 100px Arial, sans-serif'; // FALLBACK FONT
+                    coords = generateTextCoords(state.targetShape);
+                }
+                if (coords.length === 0) {
+                     log("CRITICAL: Text generation failed completely.");
+                     return;
+                }
+                
+                for (let i = 0; i < CONF.particleCount; i++) {
+                    const p = coords[i % coords.length];
+                    targetPositions[i*3] = p.x + (Math.random()-0.5);
+                    targetPositions[i*3+1] = p.y + (Math.random()-0.5);
+                    targetPositions[i*3+2] = p.z + (Math.random()-0.5);
+                }
+            }
+        }
+
+        /**
+         * MAIN INIT
+         */
+        async function init() {
+            log("LOADING FONTS...");
+            try {
+                // Timeout for font loading so we don't block forever
+                await Promise.race([
+                    document.fonts.load(CONF.canvasFont),
+                    new Promise(resolve => setTimeout(resolve, 2000))
+                ]);
+                log("FONTS READY OR TIMED OUT.");
+            } catch(e) {
+                log("FONT LOAD ERROR: " + e);
+            }
+
+            // Start Camera
+            log("STARTING OPTICAL SENSORS...");
+            const videoElement = document.getElementById('input-video');
+            const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+            
+            hands.setOptions({
+                maxNumHands: 2,
+                modelComplexity: 1,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5
+            });
+            
+            hands.onResults(onResults);
+
+            const cameraUtils = new Camera(videoElement, {
+                onFrame: async () => {
+                    await hands.send({image: videoElement});
+                },
+                width: 640,
+                height: 480
+            });
+            
+            try {
+                await cameraUtils.start();
+                log("CAMERA ONLINE.");
+            } catch(e) {
+                log("CAMERA FAILED: " + e);
+            }
+            
+            // Switch to text after a moment
+            setTimeout(() => {
+                log("SWITCHING TO TEXT MODE...");
+                state.mode = 'TEXT';
+                updateTargetPositions('TEXT');
+            }, 3000);
+        }
+
+        /**
+         * HAND LOGIC
+         */
+        function onResults(results) {
+            document.getElementById('loading').style.display = 'none';
+            state.lHand.active = false;
+            state.rHand.active = false;
+
+            if (results.multiHandLandmarks && results.multiHandedness) {
+                for (let index = 0; index < results.multiHandLandmarks.length; index++) {
+                    const classification = results.multiHandedness[index];
+                    const landmarks = results.multiHandLandmarks[index];
+                    const fingers = countFingers(landmarks);
+
+                    const wx = (0.5 - landmarks[8].x) * 400;
+                    const wy = (0.5 - landmarks[8].y) * 300;
+                    const palmX = (0.5 - landmarks[0].x) * 400;
+                    const palmY = (0.5 - landmarks[0].y) * 300;
+
+                    if (classification.label === 'Left') {
+                        state.lHand.active = true;
+                        state.lHand.fingers = fingers;
+                        state.lHand.pos.set(palmX, palmY, 0);
+                        updateLeftHandLogic(fingers);
+                    } else {
+                        state.rHand.active = true;
+                        state.rHand.fingers = fingers;
+                        state.rHand.isOpen = fingers === 5;
+                        state.rHand.pos.set(wx, wy, 0);
+                        // Right hand 1-3 fingers triggers family names!
+                        if (fingers >= 1 && fingers <= 3) {
+                            updateRightHandText(fingers);
+                        }
+                    }
+                }
+            }
+            updateHUD();
+        }
+
+        function countFingers(lm) {
+            let count = 0;
+            const thumbTip = lm[4];
+            const indexMCP = lm[5];
+            const thumbDist = Math.sqrt(Math.pow(thumbTip.x - indexMCP.x, 2) + Math.pow(thumbTip.y - indexMCP.y, 2));
+            if (thumbDist > 0.05) count++;
+            if (lm[8].y < lm[6].y) count++;
+            if (lm[12].y < lm[10].y) count++;
+            if (lm[16].y < lm[14].y) count++;
+            if (lm[20].y < lm[18].y) count++;
+            return count;
+        }
+
+        function updateLeftHandLogic(fingers) {
+            let newText = "";
+            let newColor = null;
+
+            if (fingers === 1) { newText = "Hello"; newColor = CONF.colors.blue; }
+            else if (fingers === 2) { newText = "Gemini3"; newColor = CONF.colors.yellow; }
+            else if (fingers === 3) { newText = "Opus 4.5"; newColor = CONF.colors.pink; }
+            else if (fingers === 4) { newText = "Goodbye"; newColor = CONF.colors.green; }
+
+            if (fingers === 5) {
+                 // Catch mode
+            } else if (newText !== "" && state.targetShape !== newText) {
+                state.targetShape = newText;
+                state.currentColor = newColor;
+                state.mode = 'TEXT';
+                updateTargetPositions('TEXT');
+                AudioSys.playGlass(1.5);
+                triggerGlitch();
+            }
+        }
+
+        // Right hand can also trigger text for family names!
+        function updateRightHandText(fingers) {
+            let newText = "";
+            let newColor = null;
+
+            if (fingers === 1) { newText = "Diza"; newColor = CONF.colors.purple; }
+            else if (fingers === 2) { newText = "Gaby"; newColor = CONF.colors.coral; }
+            else if (fingers === 3) { newText = "Solomon"; newColor = CONF.colors.gold; }
+
+            if (newText !== "" && state.targetShape !== newText) {
+                state.targetShape = newText;
+                state.currentColor = newColor;
+                state.mode = 'TEXT';
+                updateTargetPositions('TEXT');
+                AudioSys.playGlass(1.5);
+                triggerGlitch();
+            }
+        }
+
+        function triggerGlitch() {
+            const hud = document.querySelectorAll('.hud');
+            hud.forEach(h => {
+                h.style.transform = `translate(${Math.random()*10-5}px, ${Math.random()*10-5}px)`;
+                setTimeout(() => h.style.transform = 'none', 100);
+            });
+        }
+
+        /**
+         * ANIMATION
+         */
+        const vPos = new THREE.Vector3();
+        const vTar = new THREE.Vector3();
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            state.time += 0.05;
+
+            // DETERMINE MODE OVERRIDES
+            let isCombo = false;
+            let isCatch = false;
+            let isNebula = false;
+            let isExplosion = false;
+
+            // Track previous mode for explosion detection
+            state.prevMode = state.mode;
+
+            // Hand Overrides (Priority over Text)
+            if (state.lHand.active && state.lHand.fingers === 5) {
+                if (state.rHand.active && state.rHand.isOpen) {
+                    isCombo = true;
+                    state.mode = 'COMBO';
+                } else {
+                    isCatch = true;
+                    state.mode = 'CATCH';
+                }
+            } else if (state.rHand.active && state.rHand.isOpen) {
+                isNebula = true;
+                state.mode = 'NEBULA';
+            } else if (state.mode !== 'TEXT' && state.mode !== 'EXPLOSION') {
+                 // Return to text if hands released
+                 state.mode = 'TEXT';
+            }
+
+            // EXPLOSION TRIGGER: When catching the football (closing hands after combo)
+            if (state.prevMode === 'COMBO' && !isCombo) {
+                // User just "caught" the football - trigger explosion!
+                state.mode = 'EXPLOSION';
+                state.explosionCenter.copy(state.lHand.pos);
+                state.explosionTime = state.time;
+                AudioSys.playGlass(2.0);
+                triggerGlitch();
+            }
+
+            // Check if in explosion mode
+            if (state.mode === 'EXPLOSION') {
+                isExplosion = true;
+                // Explosion lasts for ~3 seconds then returns to text
+                if (state.time - state.explosionTime > 3) {
+                    state.mode = 'TEXT';
+                    isExplosion = false;
+                }
+            }
+
+            if (isCatch && Math.random() < 0.05) AudioSys.playGlass(0.8);
+
+            const positionsArr = geometry.attributes.position.array;
+            const colorsArr = geometry.attributes.color.array;
+
+            for (let i = 0; i < CONF.particleCount; i++) {
+                const ix = i * 3;
+                const iy = i * 3 + 1;
+                const iz = i * 3 + 2;
+
+                vPos.set(positionsArr[ix], positionsArr[iy], positionsArr[iz]);
+
+                // 1. TARGET CALC
+                if (isCombo) {
+                    const s = sphereCoords[i % sphereCoords.length];
+                    vTar.set(s.x, s.y, s.z).add(state.lHand.pos);
+                    vTar.y += Math.abs(Math.sin(state.time * 8 + i * 0.01)) * 10;
+                } else if (isExplosion) {
+                    // EXPLOSION MODE - particles scatter outward from catch point
+                    const explosionProgress = (state.time - state.explosionTime) / 3; // 0 to 1 over 3 seconds
+                    const explosionForce = Math.max(0, 1 - explosionProgress) * 2; // Stronger at start
+
+                    // Random scatter direction seeded by particle index
+                    const seed = i * 0.618033988749; // Golden ratio for good distribution
+                    const theta = seed * Math.PI * 2 * 7.3; // Angle around Y
+                    const phi = Math.acos(2 * ((seed * 13.7) % 1) - 1); // Vertical angle
+
+                    // Scatter radius expands over time
+                    const scatterRadius = 150 + explosionProgress * 250;
+
+                    // Target position: scattered across screen
+                    vTar.x = state.explosionCenter.x + Math.sin(phi) * Math.cos(theta) * scatterRadius;
+                    vTar.y = state.explosionCenter.y + Math.cos(phi) * scatterRadius * 0.7;
+                    vTar.z = Math.sin(phi) * Math.sin(theta) * scatterRadius * 0.5;
+
+                    // Add some turbulence
+                    vTar.x += Math.sin(state.time * 3 + i * 0.1) * 20 * explosionForce;
+                    vTar.y += Math.cos(state.time * 2.5 + i * 0.15) * 15 * explosionForce;
+                } else if (isCatch) {
+                    vTar.copy(state.lHand.pos);
+                    vTar.x += (Math.random()-0.5) * 50;
+                    vTar.y += (Math.random()-0.5) * 50;
+                    vTar.z += (Math.random()-0.5) * 50;
+                } else if (isNebula) {
+                     // EXPAND MODE
+                     vTar.set(positionsArr[ix] * 1.01, positionsArr[iy] * 1.01, positionsArr[iz] * 1.01);
+                    if (vTar.length() > 300) vTar.multiplyScalar(0.9);
+                } else {
+                    // TEXT MODE or SPHERE IDLE
+                    vTar.set(targetPositions[ix], targetPositions[iy], targetPositions[iz]);
+                }
+
+                // 2. FORCES
+                if (state.rHand.active && !isCombo && !isCatch) {
+                    const dx = vPos.x - state.rHand.pos.x;
+                    const dy = vPos.y - state.rHand.pos.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (isNebula) {
+                        // WATER RIPPLE EFFECT - proper sine wave with decay
+                        // Formula: displacement = amplitude * sin(dist * frequency - time * speed) * decay
+                        const rippleRadius = 200;
+                        if (dist < rippleRadius) {
+                            const frequency = 0.15;  // Wave frequency
+                            const amplitude = 25;     // Wave height
+                            const speed = 5;          // Wave speed
+                            const decay = Math.exp(-dist * 0.01); // Exponential distance decay
+                            const ripple = amplitude * Math.sin(dist * frequency - state.time * speed) * decay;
+                            vTar.z += ripple;
+                        }
+                    } else {
+                        // TEXT MODE: Pure XY scatter - NO Z-axis displacement
+                        const d2 = dx * dx + dy * dy;
+                        const radius = 80 * 80;
+                        if (d2 < radius) {
+                            const force = (1 - d2 / radius) * 100;
+                            const angle = Math.atan2(dy, dx);
+                            // XY ONLY - no Z displacement
+                            vTar.x += Math.cos(angle) * force;
+                            vTar.y += Math.sin(angle) * force;
+                            // vTar.z stays unchanged for pure planar repulsion
+                        }
+                    }
+                }
+
+                // 3. APPLY MOVEMENT
+                const f = isCombo ? 0.2 : CONF.lerpSpeed; 
+                positionsArr[ix] += (vTar.x - vPos.x) * f;
+                positionsArr[iy] += (vTar.y - vPos.y) * f;
+                positionsArr[iz] += (vTar.z - vPos.z) * f;
+
+                // 4. COLORING
+                let r, g, b;
+                if (isCombo) {
+                    // Football (soccer ball) - white with black pentagons
+                    const s = sphereCoords[i % sphereCoords.length];
+                    const radius = 60;
+
+                    // Normalize coordinates
+                    const nx = s.x / radius;
+                    const ny = s.y / radius;
+                    const nz = s.z / radius;
+
+                    // Create pentagon pattern using icosahedral-like distribution
+                    // 12 pentagon centers roughly at icosahedron vertices
+                    const phi = (1 + Math.sqrt(5)) / 2; // Golden ratio
+                    const pentagonCenters = [
+                        [0, 1, phi], [0, -1, phi], [0, 1, -phi], [0, -1, -phi],
+                        [1, phi, 0], [-1, phi, 0], [1, -phi, 0], [-1, -phi, 0],
+                        [phi, 0, 1], [-phi, 0, 1], [phi, 0, -1], [-phi, 0, -1]
+                    ];
+
+                    // Check if point is near any pentagon center
+                    let isBlack = false;
+                    const pentagonRadius = 0.35; // Size of black pentagons
+                    for (const center of pentagonCenters) {
+                        const len = Math.sqrt(center[0]**2 + center[1]**2 + center[2]**2);
+                        const cx = center[0]/len, cy = center[1]/len, cz = center[2]/len;
+                        const dist = Math.sqrt((nx-cx)**2 + (ny-cy)**2 + (nz-cz)**2);
+                        if (dist < pentagonRadius) {
+                            isBlack = true;
+                            break;
+                        }
+                    }
+
+                    if (isBlack) {
+                        r = 0.1; g = 0.1; b = 0.1; // Dark gray/black pentagons
+                    } else {
+                        r = 1; g = 1; b = 1; // White base
+                    }
+                } else if (isExplosion) {
+                    // Rainbow/multi-color explosion effect
+                    const hue = (i * 0.01 + state.time * 0.5) % 1;
+                    // HSV to RGB conversion for rainbow colors
+                    const h = hue * 6;
+                    const c = 1;
+                    const x = 1 - Math.abs(h % 2 - 1);
+                    if (h < 1) { r = c; g = x; b = 0; }
+                    else if (h < 2) { r = x; g = c; b = 0; }
+                    else if (h < 3) { r = 0; g = c; b = x; }
+                    else if (h < 4) { r = 0; g = x; b = c; }
+                    else if (h < 5) { r = x; g = 0; b = c; }
+                    else { r = c; g = 0; b = x; }
+                } else {
+                    r = state.currentColor.r;
+                    g = state.currentColor.g;
+                    b = state.currentColor.b;
+                }
+
+                colorsArr[ix] += (r - colorsArr[ix]) * 0.1;
+                colorsArr[iy] += (g - colorsArr[iy]) * 0.1;
+                colorsArr[iz] += (b - colorsArr[iz]) * 0.1;
+            }
+
+            geometry.attributes.position.needsUpdate = true;
+            geometry.attributes.color.needsUpdate = true;
+
+            renderer.render(scene, camera);
+        }
+
+        // HUD UPDATES
+        const fpsElem = document.getElementById('fps-counter');
+        const lHandStat = document.getElementById('l-hand-status');
+        const lFingers = document.getElementById('l-fingers');
+        const currentCmd = document.getElementById('current-cmd');
+        const rHandStat = document.getElementById('r-hand-status');
+        const sysMode = document.getElementById('sys-mode');
+
+        let lastTime = performance.now();
+        let frames = 0;
+
+        function updateHUD() {
+            frames++;
+            const t = performance.now();
+            if (t - lastTime >= 1000) {
+                fpsElem.innerText = frames;
+                frames = 0;
+                lastTime = t;
+            }
+
+            if (state.lHand.active) {
+                lHandStat.innerText = "TRACKING";
+                lHandStat.style.color = "#00FF88";
+                lFingers.innerText = state.lHand.fingers;
+                currentCmd.innerText = state.targetShape.toUpperCase();
+            } else {
+                lHandStat.innerText = "NO SIGNAL";
+                lHandStat.style.color = "#00FFFF";
+                lFingers.innerText = "0";
+                currentCmd.innerText = "WAITING";
+            }
+
+            if (state.rHand.active) {
+                rHandStat.innerText = state.rHand.isOpen ? "OPEN" : "FIST";
+                rHandStat.style.color = "#00FF88";
+            } else {
+                rHandStat.innerText = "NO SIGNAL";
+                rHandStat.style.color = "#00FFFF";
+            }
+
+            sysMode.innerText = state.mode;
+            sysMode.style.color = state.mode === 'TEXT' ? '#00FFFF' : '#FF00FF';
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // BOOT - START ANIMATION IMMEDIATELY
+        animate(); // Call this BEFORE init to ensure render loop runs
+        init();
+
+    </script>
+</body>
+</html>
